@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinanceIQ - Budget</title>
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar (reuse from index.html) -->
+        <!-- ...existing code for sidebar... -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo">🔍</div>
+                <span class="logo-text">FinanceIQ</span>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link"><div class="nav-icon">📊</div>Dashboard</a></li>
+                    <li class="nav-item"><a href="income.html" class="nav-link"><div class="nav-icon">💰</div>Incomes</a></li>
+                    <li class="nav-item"><a href="budget.html" class="nav-link active"><div class="nav-icon">🎯</div>Budgets</a></li>
+                    <li class="nav-item"><a href="expenses.html" class="nav-link"><div class="nav-icon">📋</div>Expenses</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link"><div class="nav-icon">⬆️</div>Upgrade</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section">
+                <div class="profile-avatar">👤</div>
+                <span class="profile-text">Profile</span>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 class="greeting">Budgets <span class="wave-emoji">🎯</span></h1>
+                <p class="subheading">Plan and manage your budgets here.</p>
+            </header>
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">📅</div>
+                    <h2 class="ai-title">Add Budget</h2>
+                </div>
+                <form id="budget-form">
+                    <div style="margin-bottom:10px;">
+                        <label>Budget Name: <input type="text" name="name" required></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    </div>
+                    <button type="submit">Add Budget</button>
+                </form>
+                <div id="budget-list" style="margin-top:20px;">
+                    <!-- List of budgets will appear here -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+    // Simple JS to add/display budgets (local only)
+    const form = document.getElementById('budget-form');
+    const list = document.getElementById('budget-list');
+    let budgets = [];
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        const name = form.name.value.trim();
+        const amount = parseFloat(form.amount.value);
+        if (name && !isNaN(amount)) {
+            budgets.push({name, amount});
+            render();
+            form.reset();
+        }
+    };
+    function render() {
+        if (budgets.length === 0) {
+            list.innerHTML = "<em>No budgets added yet.</em>";
+            return;
+        }
+        list.innerHTML = "<ul>" + budgets.map(i => `<li><b>${i.name}</b>: $${i.amount.toLocaleString()}</li>`).join("") + "</ul>";
+    }
+    render();
+    </script>
+</body>
+</html>

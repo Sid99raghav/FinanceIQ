@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinanceIQ - Assets</title>
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="sidebar"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 class="greeting">Assets <span class="wave-emoji">🏦</span></h1>
+                <p class="subheading">Track and manage your assets here.</p>
+            </header>
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🏦</div>
+                    <h2 class="ai-title">Add Asset</h2>
+                </div>
+                <form id="assets-form">
+                    <div style="margin-bottom:10px;">
+                        <label>Asset Name: <input type="text" name="name" required></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    </div>
+                    <button type="submit">Add Asset</button>
+                </form>
+                <div id="assets-list" style="margin-top:20px;">
+                    <!-- List of assets will appear here -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/site/assets/js/sidebar.js"></script>
+    <script>
+    // Simple JS to add/display assets (local only)
+    const form = document.getElementById('assets-form');
+    const list = document.getElementById('assets-list');
+    let assets = [];
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        const name = form.name.value.trim();
+        const amount = parseFloat(form.amount.value);
+        if (name && !isNaN(amount)) {
+            assets.push({name, amount});
+            render();
+            form.reset();
+        }
+    };
+    function render() {
+        if (assets.length === 0) {
+            list.innerHTML = "<em>No assets added yet.</em>";
+            return;
+        }
+        list.innerHTML = "<ul>" + assets.map(i => `<li><b>${i.name}</b>: $${i.amount.toLocaleString()}</li>`).join("") + "</ul>";
+    }
+    render();
+    </script>
+</body>
+</html>

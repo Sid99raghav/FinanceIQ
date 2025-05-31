@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinanceIQ - Income</title>
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="sidebar"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 class="greeting">Income Sources <span class="wave-emoji">💰</span></h1>
+                <p class="subheading">Track and manage your income streams here.</p>
+            </header>
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">💵</div>
+                    <h2 class="ai-title">Add Income Source</h2>
+                </div>
+                <form id="income-form">
+                    <div style="margin-bottom:10px;">
+                        <label>Source Name: <input type="text" name="source" required></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    </div>
+                    <button type="submit">Add Income</button>
+                </form>
+                <div id="income-list" style="margin-top:20px;">
+                    <!-- List of incomes will appear here -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/site/assets/js/sidebar.js"></script>
+    <script src="/site/assets/js/plan.js"></script>
+    <script src="/site/assets/js/income.js"></script>
+</body>
+</html>

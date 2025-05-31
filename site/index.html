@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceIQ Dashboard</title>
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="sidebar"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- User Avatar -->
+            <div class="user-avatar" id="user-avatar">👤</div>
+            <!-- SSO Buttons -->
+            <div style="margin-bottom:20px;">
+                <button id="login-btn" style="display:inline-block;">Login with Google</button>
+                <button id="logout-btn" style="display:none;">Logout</button>
+                <span id="user-email" style="margin-left:10px;"></span>
+            </div>
+
+            <!-- Header -->
+            <header class="header">
+                <h1 class="greeting">
+                    Hi, Siddhant Raghav
+                    <span class="wave-emoji">👋</span>
+                </h1>
+                <p class="subheading">Here's what happening with your money, Lets Manage your expense</p>
+            </header>
+
+            <!-- AI Assistant -->
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🤖</div>
+                    <h2 class="ai-title">Finan Smart AI</h2>
+                </div>
+                <p class="ai-message">Sorry, I couldn't fetch the financial advice at this moment. Please try again later.</p>
+            </section>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Income</span>
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-value" id="total-income">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Assets</span>
+                        <div class="stat-icon">🏦</div>
+                    </div>
+                    <div class="stat-value" id="total-assets">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Expenses</span>
+                        <div class="stat-icon">📋</div>
+                    </div>
+                    <div class="stat-value" id="total-expenses">$0</div>
+                </div>
+            </section>
+
+            <!-- Additional Stats -->
+            <section class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 40px;">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Sum of Income Streams</span>
+                        <div class="stat-icon">💲</div>
+                    </div>
+                    <div class="stat-value">$4.3M</div>
+                </div>
+            </section>
+
+            <!-- Bottom Section -->
+            <section class="bottom-section">
+                <div class="activity-section">
+                    <h3 class="activity-title">Activity</h3>
+                    <div class="chart-container">
+                        <div class="y-axis">
+                            <span>10000</span>
+                            <span>7500</span>
+                            <span>5000</span>
+                            <span>2500</span>
+                            <span>0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="latest-budgets">
+                    <h3 class="latest-title">Latest Budgets</h3>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/site/assets/js/sidebar.js"></script>
+    <script src="/site/assets/js/main.js"></script>
+    <script src="/site/assets/js/plan.js"></script>
+    <script>
+    // Demo: Load totals from localStorage (used by income/assets/expenses pages)
+    function getSum(key) {
+        try {
+            const arr = JSON.parse(localStorage.getItem(key) || "[]");
+            return arr.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        } catch { return 0; }
+    }
+    function updateDashboardTotals() {
+        document.getElementById('total-income').textContent = "$" + getSum('incomes').toLocaleString();
+        document.getElementById('total-assets').textContent = "$" + getSum('assets').toLocaleString();
+        document.getElementById('total-expenses').textContent = "$" + getSum('expenses').toLocaleString();
+    }
+    updateDashboardTotals();
+    window.addEventListener('storage', updateDashboardTotals);
+    </script>
+</body>
+</html>
