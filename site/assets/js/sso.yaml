@@ -1,0 +1,8 @@
+google_sso:
+  client_id: "488678637347-rr3big7ftd4c1ufnmakbc7tr7ou7rdre.apps.googleusercontent.com"
+  client_secret: "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"
+  callback_url: "https://localhost/google/callback"
+  secret_key: "your-secret-key"  # Replace with a strong, random key
+  scopes:
+    - "email"
+    - "profile"
