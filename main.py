@@ -344,7 +344,7 @@ async def generate_financial(email: str):
 
     prompt = f"""
 You are a financial advisor. Given the following user data, generate a detailed, actionable financial plan in markdown format.
-The amounts are in INR. Please show the data in a table format.
+The amounts are in INR.
 
 Assets: {assets}
 Expenses: {expenses}
@@ -353,7 +353,12 @@ Goals: {goals}
 Goal Time Period (years): {goal_period}
 
 The plan should include savings strategy, investment suggestions, and a timeline to achieve the goals.
+Please respond below infomation in proper tabular format only
+1. Show how to achive goals, and how much to invest for each goal, in different investment instruments, amount (sip or lumpsum per month), timeline.
+2. Monthly outflow should not exceed 80% of Monthly income. Consider inflation of 6% per year and loan interest of 10% per year. 
+3. If not able to achieve goals, suggest how much income is required to achieve the goals.
 """
+    logger.info(f"Generating financial plan for {email} with prompt: {prompt}")
     response = genai_utils.gemini_chat_completion(prompt, format="markdown")
     if not response:
         raise HTTPException(status_code=500, detail="Failed to generate financial plan")
@@ -383,3 +388,189 @@ async def view_financial_plan(item: dict = Body(...)):
     if user.get("financial_plan"):
         return {"financial_plan": user["financial_plan"]}
     return await generate_financial(email)
+
+@app.post("/api/incomes/update")
+async def update_income(item: dict = Body(...)):
+    """
+    Update an income entry for a user.
+    Input: { "email": ..., "oldName": ..., "newName": ..., "amount": ... }
+    """
+    email = item.get("email")
+    old_name = item.get("oldName")
+    new_name = item.get("newName")
+    amount = item.get("amount")
+    if not email or not old_name or new_name is None or amount is None:
+        raise HTTPException(status_code=400, detail="Email, oldName, newName, and amount required")
+    users = load_users()
+    user = users.get(email, default_user())
+    updated = False
+    for income in user["income"]:
+        if income["name"] == old_name:
+            income["name"] = new_name
+            income["amount"] = amount
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail="Income entry not found")
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.post("/api/incomes/delete")
+async def delete_income(item: dict = Body(...)):
+    """
+    Delete an income entry for a user.
+    Input: { "email": ..., "name": ... }
+    """
+    email = item.get("email")
+    name = item.get("name")
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Email and name required")
+    users = load_users()
+    user = users.get(email, default_user())
+    before = len(user["income"])
+    user["income"] = [inc for inc in user["income"] if inc["name"] != name]
+    after = len(user["income"])
+    users[email] = user
+    save_users(users)
+    return {"ok": True, "deleted": before - after}
+
+@app.post("/api/assets/update")
+async def update_asset(item: dict = Body(...)):
+    """
+    Update an asset entry for a user.
+    Input: { "email": ..., "oldName": ..., "newName": ..., "amount": ... }
+    """
+    email = item.get("email")
+    old_name = item.get("oldName")
+    new_name = item.get("newName")
+    amount = item.get("amount")
+    if not email or not old_name or new_name is None or amount is None:
+        raise HTTPException(status_code=400, detail="Email, oldName, newName, and amount required")
+    users = load_users()
+    user = users.get(email, default_user())
+    updated = False
+    for asset in user["assets"]:
+        if asset["name"] == old_name:
+            asset["name"] = new_name
+            asset["amount"] = amount
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail="Asset entry not found")
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.post("/api/assets/delete")
+async def delete_asset(item: dict = Body(...)):
+    """
+    Delete an asset entry for a user.
+    Input: { "email": ..., "name": ... }
+    """
+    email = item.get("email")
+    name = item.get("name")
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Email and name required")
+    users = load_users()
+    user = users.get(email, default_user())
+    before = len(user["assets"])
+    user["assets"] = [a for a in user["assets"] if a["name"] != name]
+    after = len(user["assets"])
+    users[email] = user
+    save_users(users)
+    return {"ok": True, "deleted": before - after}
+
+@app.post("/api/expenses/update")
+async def update_expense(item: dict = Body(...)):
+    """
+    Update an expense entry for a user.
+    Input: { "email": ..., "oldName": ..., "newName": ..., "amount": ... }
+    """
+    email = item.get("email")
+    old_name = item.get("oldName")
+    new_name = item.get("newName")
+    amount = item.get("amount")
+    if not email or not old_name or new_name is None or amount is None:
+        raise HTTPException(status_code=400, detail="Email, oldName, newName, and amount required")
+    users = load_users()
+    user = users.get(email, default_user())
+    updated = False
+    for expense in user["expenses"]:
+        if expense["name"] == old_name:
+            expense["name"] = new_name
+            expense["amount"] = amount
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail="Expense entry not found")
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.post("/api/expenses/delete")
+async def delete_expense(item: dict = Body(...)):
+    """
+    Delete an expense entry for a user.
+    Input: { "email": ..., "name": ... }
+    """
+    email = item.get("email")
+    name = item.get("name")
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Email and name required")
+    users = load_users()
+    user = users.get(email, default_user())
+    before = len(user["expenses"])
+    user["expenses"] = [e for e in user["expenses"] if e["name"] != name]
+    after = len(user["expenses"])
+    users[email] = user
+    save_users(users)
+    return {"ok": True, "deleted": before - after}
+
+@app.post("/api/goals/update")
+async def update_goal(item: dict = Body(...)):
+    """
+    Update a goal entry for a user.
+    Input: { "email": ..., "oldName": ..., "newName": ..., "amount": ..., "years": ... }
+    """
+    email = item.get("email")
+    old_name = item.get("oldName")
+    new_name = item.get("newName")
+    amount = item.get("amount")
+    years = item.get("years")
+    if not email or not old_name or new_name is None or amount is None or years is None:
+        raise HTTPException(status_code=400, detail="Email, oldName, newName, amount, and years required")
+    users = load_users()
+    user = users.get(email, default_user())
+    updated = False
+    for goal in user["goals"]:
+        if goal["name"] == old_name:
+            goal["name"] = new_name
+            goal["amount"] = amount
+            goal["years"] = years
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail="Goal entry not found")
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.post("/api/goals/delete")
+async def delete_goal(item: dict = Body(...)):
+    """
+    Delete a goal entry for a user.
+    Input: { "email": ..., "name": ... }
+    """
+    email = item.get("email")
+    name = item.get("name")
+    if not email or not name:
+        raise HTTPException(status_code=400, detail="Email and name required")
+    users = load_users()
+    user = users.get(email, default_user())
+    before = len(user["goals"])
+    user["goals"] = [g for g in user["goals"] if g["name"] != name]
+    after = len(user["goals"])
+    users[email] = user
+    save_users(users)
+    return {"ok": True, "deleted": before - after}
