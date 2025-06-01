@@ -17,25 +17,119 @@
             <section class="ai-section">
                 <div class="ai-header">
                     <div class="ai-icon">💵</div>
-                    <h2 class="ai-title">Add Income Source</h2>
+                    <h2 class="ai-title">Add/Edit Income Source</h2>
                 </div>
                 <form id="income-form">
-                    <div style="margin-bottom:10px;">
-                        <label>Source Name: <input type="text" name="source" required></label>
+                    <input type="hidden" id="income-editing" value="">
+                    <div class="form-row">
+                        <label for="income-name">Source Name:</label>
+                        <input type="text" id="income-name" required autocomplete="off">
                     </div>
-                    <div style="margin-bottom:10px;">
-                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    <div class="form-row">
+                        <label for="income-amount">Amount (INR):</label>
+                        <input type="number" id="income-amount" required min="0" step="0.01" placeholder="₹">
                     </div>
-                    <button type="submit">Add Income</button>
+                    <div class="form-row" style="justify-content: flex-end;">
+                        <button type="submit" id="income-save-btn">Add Income</button>
+                        <button type="button" id="income-cancel-btn" style="display:none;">Cancel</button>
+                    </div>
                 </form>
                 <div id="income-list" style="margin-top:20px;">
-                    <!-- List of incomes will appear here -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Amount (INR)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="income-table-body"></tbody>
+                    </table>
                 </div>
             </section>
         </main>
     </div>
     <script src="/site/assets/js/sidebar.js"></script>
-    <script src="/site/assets/js/plan.js"></script>
-    <script src="/site/assets/js/income.js"></script>
+    <script type="module">
+    import { getIncomes, saveIncome, deleteIncome, updateIncome } from '/site/assets/js/backend.js';
+
+    const emailPromise = (async () => await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email")))();
+
+    async function refreshIncomeList() {
+        const email = await emailPromise;
+        const incomes = await getIncomes(email);
+        const table = document.getElementById("income-table-body");
+        table.innerHTML = "";
+        incomes.forEach(income => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${income.name}</td>
+                <td>${income.amount}</td>
+                <td>
+                    <button type="button" class="edit-btn" data-name="${income.name}" data-amount="${income.amount}">✏️ Edit</button>
+                    <button type="button" class="delete-btn" data-name="${income.name}">🗑️ Delete</button>
+                </td>
+            `;
+            table.appendChild(row);
+        });
+
+        // Attach event listeners for edit/delete
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => editIncome(btn.dataset.name, btn.dataset.amount);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => removeIncome(btn.dataset.name);
+        });
+    }
+
+    window.addIncome = async function() {
+        const email = await emailPromise;
+        const name = document.getElementById("income-name").value;
+        const amount = parseFloat(document.getElementById("income-amount").value);
+        await saveIncome({ email, source: name, amount });
+        document.getElementById("income-form").reset();
+        await refreshIncomeList();
+    };
+
+    window.removeIncome = async function(name) {
+        const email = await emailPromise;
+        await deleteIncome(email, name);
+        await refreshIncomeList();
+    };
+
+    window.editIncome = function(name, amount) {
+        document.getElementById("income-name").value = name;
+        document.getElementById("income-amount").value = amount;
+        document.getElementById("income-editing").value = name;
+        document.getElementById("income-save-btn").textContent = "Update Income";
+        document.getElementById("income-cancel-btn").style.display = "";
+    };
+
+    window.cancelEditIncome = function() {
+        document.getElementById("income-form").reset();
+        document.getElementById("income-editing").value = "";
+        document.getElementById("income-save-btn").textContent = "Add Income";
+        document.getElementById("income-cancel-btn").style.display = "none";
+    };
+
+    document.getElementById("income-form").onsubmit = async function(e) {
+        e.preventDefault();
+        const email = await emailPromise;
+        const editing = document.getElementById("income-editing").value;
+        const name = document.getElementById("income-name").value;
+        const amount = parseFloat(document.getElementById("income-amount").value);
+        if (editing) {
+            await updateIncome(email, editing, name, amount);
+            window.cancelEditIncome();
+        } else {
+            await saveIncome({ email, source: name, amount });
+        }
+        await refreshIncomeList();
+    };
+
+    document.getElementById("income-cancel-btn").onclick = window.cancelEditIncome;
+
+    window.onload = refreshIncomeList;
+    </script>
 </body>
 </html>

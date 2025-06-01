@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinanceIQ - Goals</title>
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="sidebar"></div>
+        <main class="main-content">
+            <header class="header">
+                <h1 class="greeting">Financial Goals <span class="wave-emoji">🎯</span></h1>
+                <p class="subheading">Set, edit, and track your financial goals.</p>
+            </header>
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🏆</div>
+                    <h2 class="ai-title">Add/Edit Goal</h2>
+                </div>
+                <form id="goal-form">
+                    <input type="hidden" id="goal-editing" value="">
+                    <div class="form-row">
+                        <label for="goal-name">Goal Name:</label>
+                        <input type="text" id="goal-name" required autocomplete="off">
+                    </div>
+                    <div class="form-row">
+                        <label for="goal-amount">Amount (INR):</label>
+                        <input type="number" id="goal-amount" required min="0" step="0.01" placeholder="₹">
+                    </div>
+                    <div class="form-row">
+                        <label for="goal-years">Years:</label>
+                        <input type="number" id="goal-years" required min="1" step="1">
+                    </div>
+                    <div class="form-row" style="justify-content: flex-end;">
+                        <button type="submit" id="goal-save-btn">Add Goal</button>
+                        <button type="button" id="goal-cancel-btn" style="display:none;">Cancel</button>
+                    </div>
+                </form>
+                <div id="goal-list" style="margin-top:20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount (INR)</th>
+                                <th>Years</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="goal-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/site/assets/js/sidebar.js"></script>
+    <script type="module">
+    import { getGoals, saveGoal, deleteGoal, updateGoal } from '/site/assets/js/backend.js';
+
+    const emailPromise = (async () => await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email")))();
+
+    async function refreshGoalList() {
+        const email = await emailPromise;
+        const goals = await getGoals(email);
+        const table = document.getElementById("goal-table-body");
+        table.innerHTML = "";
+        goals.forEach(goal => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${goal.name}</td>
+                <td>${goal.amount}</td>
+                <td>${goal.years}</td>
+                <td>
+                    <button type="button" class="edit-btn" data-name="${goal.name}" data-amount="${goal.amount}" data-years="${goal.years}">✏️ Edit</button>
+                    <button type="button" class="delete-btn" data-name="${goal.name}">🗑️ Delete</button>
+                </td>
+            `;
+            table.appendChild(row);
+        });
+
+        // Attach event listeners for edit/delete
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => editGoal(btn.dataset.name, btn.dataset.amount, btn.dataset.years);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => removeGoal(btn.dataset.name);
+        });
+    }
+
+    window.addGoal = async function() {
+        const email = await emailPromise;
+        const name = document.getElementById("goal-name").value;
+        const amount = parseFloat(document.getElementById("goal-amount").value);
+        const years = parseInt(document.getElementById("goal-years").value);
+        await saveGoal({ email, name, amount, years });
+        document.getElementById("goal-form").reset();
+        await refreshGoalList();
+    };
+
+    window.removeGoal = async function(name) {
+        const email = await emailPromise;
+        await deleteGoal(email, name);
+        await refreshGoalList();
+    };
+
+    window.editGoal = function(name, amount, years) {
+        document.getElementById("goal-name").value = name;
+        document.getElementById("goal-amount").value = amount;
+        document.getElementById("goal-years").value = years;
+        document.getElementById("goal-editing").value = name;
+        document.getElementById("goal-save-btn").textContent = "Update Goal";
+        document.getElementById("goal-cancel-btn").style.display = "";
+    };
+
+    window.cancelEditGoal = function() {
+        document.getElementById("goal-form").reset();
+        document.getElementById("goal-editing").value = "";
+        document.getElementById("goal-save-btn").textContent = "Add Goal";
+        document.getElementById("goal-cancel-btn").style.display = "none";
+    };
+
+    document.getElementById("goal-form").onsubmit = async function(e) {
+        e.preventDefault();
+        const email = await emailPromise;
+        const editing = document.getElementById("goal-editing").value;
+        const name = document.getElementById("goal-name").value;
+        const amount = parseFloat(document.getElementById("goal-amount").value);
+        const years = parseInt(document.getElementById("goal-years").value);
+        if (editing) {
+            await updateGoal(email, editing, name, amount, years);
+            window.cancelEditGoal();
+        } else {
+            await saveGoal({ email, name, amount, years });
+        }
+        await refreshGoalList();
+    };
+
+    document.getElementById("goal-cancel-btn").onclick = window.cancelEditGoal;
+
+    window.onload = refreshGoalList;
+    </script>
+</body>
+</html>

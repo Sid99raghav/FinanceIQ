@@ -1,60 +1,70 @@
-const form = document.getElementById('income-form');
-const list = document.getElementById('income-list');
+import { getIncomes, saveIncome, deleteIncome, updateIncome } from '/site/assets/js/backend.js';
+
+const email = localStorage.getItem("user_email");
 
 async function refreshIncomeList() {
-    // Get user email from backend, fallback to sid@gmail.com
-    let email = "sid@gmail.com";
-    try {
-        const res = await fetch('/api/auth/me', {credentials: "include"});
-        if (res.ok) {
-            const user = await res.json();
-            if (user.email) email = user.email;
-        }
-    } catch {}
-    // Fetch incomes from backend
-    const resp = await fetch(`/api/incomes?email=${encodeURIComponent(email)}`, {credentials: "include"});
-    if (!resp.ok) {
-        list.innerHTML = "<em>Could not load incomes.</em>";
-        return;
-    }
-    const incomes = await resp.json();
-    if (!incomes.length) {
-        list.innerHTML = "<em>No incomes added yet.</em>";
-        return;
-    }
-    list.innerHTML = "<ul>" + incomes.map(i => `<li><b>${i.source}</b>: $${i.amount.toLocaleString()}</li>`).join("") + "</ul>";
+    const incomes = await getIncomes(email);
+    const table = document.getElementById("income-table-body");
+    table.innerHTML = "";
+    incomes.forEach(income => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${income.name}</td>
+            <td>${income.amount}</td>
+            <td>
+                <button type="button" onclick="editIncome('${income.name}', ${income.amount})">Edit</button>
+                <button type="button" onclick="removeIncome('${income.name}')">Delete</button>
+            </td>
+        `;
+        table.appendChild(row);
+    });
 }
 
-form.onsubmit = async function(e) {
-    e.preventDefault();
-    const source = form.source.value.trim();
-    const amount = parseFloat(form.amount.value);
-    if (!source || isNaN(amount)) {
-        alert("Please enter valid income source and amount.");
-        return;
-    }
-    // Get user email from backend, fallback to sid@gmail.com
-    let email = "sid@gmail.com";
-    try {
-        const res = await fetch('/api/auth/me', {credentials: "include"});
-        if (res.ok) {
-            const user = await res.json();
-            if (user.email) email = user.email;
-        }
-    } catch {}
-    // Save to backend
-    const resp = await fetch("/api/incomes", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        credentials: "include",
-        body: JSON.stringify({ email, source, amount })
-    });
-    if (resp.ok) {
-        form.reset();
-        await refreshIncomeList();
-    } else {
-        alert("Failed to save income.");
-    }
+window.addIncome = async function() {
+    const name = document.getElementById("income-name").value;
+    const amount = parseFloat(document.getElementById("income-amount").value);
+    await saveIncome({ email, source: name, amount });
+    document.getElementById("income-form").reset();
+    await refreshIncomeList();
 };
 
-refreshIncomeList();
+window.removeIncome = async function(name) {
+    await deleteIncome(email, name);
+    await refreshIncomeList();
+};
+
+window.editIncome = function(name, amount) {
+    document.getElementById("income-name").value = name;
+    document.getElementById("income-amount").value = amount;
+    document.getElementById("income-editing").value = name;
+    document.getElementById("income-save-btn").textContent = "Update Income";
+    document.getElementById("income-cancel-btn").style.display = "";
+};
+
+window.cancelEditIncome = function() {
+    document.getElementById("income-form").reset();
+    document.getElementById("income-editing").value = "";
+    document.getElementById("income-save-btn").textContent = "Add Income";
+    document.getElementById("income-cancel-btn").style.display = "none";
+};
+
+document.getElementById("income-form").onsubmit = async function(e) {
+    e.preventDefault();
+    const editing = document.getElementById("income-editing").value;
+    const name = document.getElementById("income-name").value;
+    const amount = parseFloat(document.getElementById("income-amount").value);
+    if (editing) {
+        await updateIncome(email, editing, name, amount);
+        window.cancelEditIncome();
+    } else {
+        await saveIncome({ email, source: name, amount });
+    }
+    await refreshIncomeList();
+};
+
+document.getElementById("income-cancel-btn").onclick = window.cancelEditIncome;
+
+window.editIncome = window.editIncome;
+window.removeIncome = window.removeIncome;
+
+window.onload = refreshIncomeList;

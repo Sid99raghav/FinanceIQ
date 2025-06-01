@@ -8,9 +8,10 @@ from pydantic import BaseModel, validator, ValidationError
 from pathlib import Path
 import json
 import os
-import datetime
-import requests
-import shutil
+
+# Configure logger
+logger = logging.getLogger("financeiq")
+logging.basicConfig(level=logging.INFO)
 
 # TODO: import functions https redirect
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
@@ -20,22 +21,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 # import functions from dbmgr
 import sys
 sys.path.append("lib")
-import utils
 import json
 import genai_utils
-
-"""
-from sqlalchemy import create_engine, Column, Integer, String, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-
-
-DATABASE_URL = "sqlite:///./properties.db"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-"""
 
 app = FastAPI(debug=True)
 
@@ -87,6 +74,27 @@ async def google_callback(request: Request):
 
         # Load or initialize the profile
         email = user.email
+
+        # Helper functions for profile management
+        PROFILE_DIR = os.path.join(DATA_DIR, "profiles")
+        os.makedirs(PROFILE_DIR, exist_ok=True)
+
+        def profile_path(email):
+            safe_email = email.replace("@", "_at_").replace(".", "_dot_")
+            return os.path.join(PROFILE_DIR, f"{safe_email}.json")
+
+        def load_profile(email):
+            path = profile_path(email)
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    return json.load(f)
+            return None
+
+        def save_profile(email, profile):
+            path = profile_path(email)
+            with open(path, "w") as f:
+                json.dump(profile, f, indent=2)
+
         profile = load_profile(email) or {
             "name": user.display_name,
             "email": email,
@@ -96,7 +104,7 @@ async def google_callback(request: Request):
         # Check if role is missing
         if not profile.get("role"):
             save_profile(email, profile)  # Save the profile to ensure it's initialized
-            return RedirectResponse(url="/edit-profile.html", status_code=302)
+            return RedirectResponse(url="/", status_code=302)
 
         # Save the profile and redirect to the homepage
         save_profile(email, profile)
@@ -145,23 +153,34 @@ from fastapi import Body
 
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
+USERS_DATA_PATH = os.path.join(DATA_DIR, "users.json")
 
-def get_data_path(type_):
-    return os.path.join(DATA_DIR, f"{type_}.json")
+def default_user():
+    return {
+        "income": [],
+        "assets": [],
+        "expenses": [],
+        "goals": [],
+        "financial_plan": ""
+    }
 
-def load_data(type_):
-    path = get_data_path(type_)
-    if not os.path.exists(path):
+def load_users():
+    if not os.path.exists(USERS_DATA_PATH):
         return {}
-    with open(path, "r") as f:
+    with open(USERS_DATA_PATH, "r") as f:
         return json.load(f)
 
-def save_data(type_, data):
-    path = get_data_path(type_)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+def save_users(users):
+    with open(USERS_DATA_PATH, "w") as f:
+        json.dump(users, f, indent=2)
 
 @app.post("/api/assets")
+# Sample input:
+# {
+#   "email": "user@example.com",
+#   "name": "House",
+#   "amount": 100000
+# }
 async def save_asset(item: dict = Body(...)):
     email = item.get("email")
     if not email:
@@ -170,19 +189,27 @@ async def save_asset(item: dict = Body(...)):
     amount = item.get("amount")
     if not name or amount is None:
         raise HTTPException(status_code=400, detail="Asset name and amount required")
-    assets = load_data("assets")
-    user_assets = assets.get(email, [])
-    user_assets.append({"name": name, "amount": amount})
-    assets[email] = user_assets
-    save_data("assets", assets)
+    users = load_users()
+    user = users.get(email, default_user())
+    user["assets"].append({"name": name, "amount": amount})
+    users[email] = user
+    save_users(users)
     return {"ok": True}
 
 @app.get("/api/assets")
+# Sample input: /api/assets?email=user@example.com
 async def get_assets(email: str):
-    assets = load_data("assets")
-    return assets.get(email, [])
+    users = load_users()
+    user = users.get(email, {})
+    return user.get("assets", [])
 
 @app.post("/api/incomes")
+# Sample input:
+# {
+#   "email": "user@example.com",
+#   "source": "Salary",
+#   "amount": 9000
+# }
 async def save_income(item: dict = Body(...)):
     email = item.get("email")
     if not email:
@@ -191,19 +218,27 @@ async def save_income(item: dict = Body(...)):
     amount = item.get("amount")
     if not source or amount is None:
         raise HTTPException(status_code=400, detail="Income source and amount required")
-    incomes = load_data("incomes")
-    user_incomes = incomes.get(email, [])
-    user_incomes.append({"source": source, "amount": amount})
-    incomes[email] = user_incomes
-    save_data("incomes", incomes)
+    users = load_users()
+    user = users.get(email, default_user())
+    user["income"].append({"name": source, "amount": amount})
+    users[email] = user
+    save_users(users)
     return {"ok": True}
 
 @app.get("/api/incomes")
+# Sample input: /api/incomes?email=user@example.com
 async def get_incomes(email: str):
-    incomes = load_data("incomes")
-    return incomes.get(email, [])
+    users = load_users()
+    user = users.get(email, {})
+    return user.get("income", [])
 
 @app.post("/api/expenses")
+# Sample input:
+# {
+#   "email": "user@example.com",
+#   "name": "Rent",
+#   "amount": 2000
+# }
 async def save_expense(item: dict = Body(...)):
     email = item.get("email")
     if not email:
@@ -212,14 +247,139 @@ async def save_expense(item: dict = Body(...)):
     amount = item.get("amount")
     if not name or amount is None:
         raise HTTPException(status_code=400, detail="Expense name and amount required")
-    expenses = load_data("expenses")
-    user_expenses = expenses.get(email, [])
-    user_expenses.append({"name": name, "amount": amount})
-    expenses[email] = user_expenses
-    save_data("expenses", expenses)
+    users = load_users()
+    user = users.get(email, default_user())
+    user["expenses"].append({"name": name, "amount": amount})
+    users[email] = user
+    save_users(users)
     return {"ok": True}
 
 @app.get("/api/expenses")
+# Sample input: /api/expenses?email=user@example.com
 async def get_expenses(email: str):
-    expenses = load_data("expenses")
-    return expenses.get(email, [])
+    users = load_users()
+    user = users.get(email, {})
+    return user.get("expenses", [])
+
+@app.post("/api/goals")
+# Sample input:
+# {
+#   "email": "user@example.com",
+#   "name": "Buy Car",
+#   "amount": 15000,
+#   "years": 3
+# }
+async def save_goal(item: dict = Body(...)):
+    email = item.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+    name = item.get("name")
+    amount = item.get("amount")
+    years = item.get("years")
+    if not name or amount is None or years is None:
+        raise HTTPException(status_code=400, detail="Goal name, amount, and years required")
+    users = load_users()
+    user = users.get(email, default_user())
+    user["goals"].append({"name": name, "amount": amount, "years": years})
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.get("/api/goals")
+# Sample input: /api/goals?email=user@example.com
+async def get_goals(email: str):
+    users = load_users()
+    user = users.get(email, {})
+    return user.get("goals", [])
+
+@app.post("/api/plan")
+# Sample input:
+# {
+#   "email": "user@example.com",
+#   "plan": "Your generated plan text here"
+# }
+async def save_financial_plan(item: dict = Body(...)):
+    email = item.get("email")
+    plan = item.get("plan")
+    if not email or plan is None:
+        raise HTTPException(status_code=400, detail="Email and plan required")
+    users = load_users()
+    user = users.get(email, default_user())
+    user["financial_plan"] = plan
+    users[email] = user
+    save_users(users)
+    return {"ok": True}
+
+@app.get("/api/plan")
+# Sample input: /api/plan?email=user@example.com
+async def get_financial_plan(email: str):
+    users = load_users()
+    user = users.get(email, {})
+    return {"financial_plan": user.get("financial_plan", "")}
+
+@app.post("/api/plan/generate")
+# Sample input:
+# {
+#   "email": "user@example.com"
+# }
+async def generate_financial_plan(item: dict = Body(...)):
+    """
+    Always generate a new financial plan and save it for the user.
+    Uses values from the database. Generates plan even if some fields are missing.
+    """
+    return await generate_financial(item["email"])
+
+async def generate_financial(email: str):
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+    users = load_users()
+    user = users.get(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User data not found")
+    assets = user.get("assets", [])
+    expenses = user.get("expenses", [])
+    income = user.get("income", [])
+    goals = user.get("goals", [])
+    goal_period = goals[0]["years"] if goals and "years" in goals[0] else None
+
+    prompt = f"""
+You are a financial advisor. Given the following user data, generate a detailed, actionable financial plan in markdown format.
+The amounts are in INR. Please show the data in a table format.
+
+Assets: {assets}
+Expenses: {expenses}
+Income Sources: {income}
+Goals: {goals}
+Goal Time Period (years): {goal_period}
+
+The plan should include savings strategy, investment suggestions, and a timeline to achieve the goals.
+"""
+    response = genai_utils.gemini_chat_completion(prompt, format="markdown")
+    if not response:
+        raise HTTPException(status_code=500, detail="Failed to generate financial plan")
+    plan = response if isinstance(response, str) else getattr(response, "text", str(response))
+    user["financial_plan"] = plan
+    users[email] = user
+    save_users(users)
+    return {"financial_plan": plan}
+
+@app.post("/api/plan/view")
+# Sample input:
+# {
+#   "email": "user@example.com"
+# }
+async def view_financial_plan(item: dict = Body(...)):
+    """
+    View the saved plan if it exists, else generate, save, and return a new plan.
+    Uses values from the database. Generates plan even if some fields are missing.
+    """
+    email = item.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+    users = load_users()
+    user = users.get(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User data not found")
+    if user.get("financial_plan"):
+        return {"financial_plan": user["financial_plan"]}
+    return await generate_financial(email)

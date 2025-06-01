@@ -29,53 +29,65 @@
                 <p class="subheading">Here's what happening with your money, Lets Manage your expense</p>
             </header>
 
-            <!-- AI Assistant -->
-            <section class="ai-section">
-                <div class="ai-header">
-                    <div class="ai-icon">🤖</div>
-                    <h2 class="ai-title">Finan Smart AI</h2>
-                </div>
-                <p class="ai-message">Sorry, I couldn't fetch the financial advice at this moment. Please try again later.</p>
-            </section>
-
-            <!-- Stats Grid -->
+            <!-- Stats Grid (moved above AI Assistant) -->
             <section class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Income</span>
                         <div class="stat-icon">💰</div>
                     </div>
-                    <div class="stat-value" id="total-income">$0</div>
+                    <div class="stat-value" id="total-income">₹0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Assets</span>
                         <div class="stat-icon">🏦</div>
                     </div>
-                    <div class="stat-value" id="total-assets">$0</div>
+                    <div class="stat-value" id="total-assets">₹0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Expenses</span>
                         <div class="stat-icon">📋</div>
                     </div>
-                    <div class="stat-value" id="total-expenses">$0</div>
+                    <div class="stat-value" id="total-expenses">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Goals</span>
+                        <div class="stat-icon">🎯</div>
+                    </div>
+                    <div class="stat-value" id="total-goals">₹0</div>
                 </div>
             </section>
 
-            <!-- Additional Stats -->
-            <section class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 40px;">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-title">Sum of Income Streams</span>
-                        <div class="stat-icon">💲</div>
-                    </div>
-                    <div class="stat-value">$4.3M</div>
+            <!-- AI Assistant -->
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🤖</div>
+                    <h2 class="ai-title">Finan Smart AI</h2>
                 </div>
+                <div style="margin-top:24px; display:flex; gap:16px;">
+                    <button id="view-financial-report-btn" class="btn-primary">View Financial Report</button>
+                    <button id="generate-financial-report-btn" class="btn-primary">Generate Fresh Report</button>
+                </div>
+                <!-- Spinner Modal -->
+                <div id="ai-spinner-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+                    <div style="background:#fff;padding:32px 40px;border-radius:12px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 16px #0002;">
+                        <div class="spinner" style="width:48px;height:48px;border:6px solid #eee;border-top:6px solid #007bff;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:18px;"></div>
+                        <div style="font-size:1.2em;font-weight:500;">Finance IQ AI is working on your financial plan...</div>
+                    </div>
+                </div>
+                <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg);}
+                    100% { transform: rotate(360deg);}
+                }
+                </style>
             </section>
 
             <!-- Bottom Section -->
-            <section class="bottom-section">
+            <!--section class="bottom-section">
                 <div class="activity-section">
                     <h3 class="activity-title">Activity</h3>
                     <div class="chart-container">
@@ -92,27 +104,117 @@
                 <div class="latest-budgets">
                     <h3 class="latest-title">Latest Budgets</h3>
                 </div>
-            </section>
+            </section-->
         </main>
     </div>
     <script src="/site/assets/js/sidebar.js"></script>
     <script src="/site/assets/js/main.js"></script>
     <script src="/site/assets/js/plan.js"></script>
-    <script>
-    // Demo: Load totals from localStorage (used by income/assets/expenses pages)
-    function getSum(key) {
+    <script type="module">
+    import { getIncomes, getAssets, getExpenses, getGoals, viewFinancialPlan, generateFinancialPlan } from '/site/assets/js/backend.js';
+
+    async function getSumFromAPI(getFn) {
         try {
-            const arr = JSON.parse(localStorage.getItem(key) || "[]");
-            return arr.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+            const arr = await getFn();
+            return Array.isArray(arr) ? arr.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0) : 0;
         } catch { return 0; }
     }
-    function updateDashboardTotals() {
-        document.getElementById('total-income').textContent = "$" + getSum('incomes').toLocaleString();
-        document.getElementById('total-assets').textContent = "$" + getSum('assets').toLocaleString();
-        document.getElementById('total-expenses').textContent = "$" + getSum('expenses').toLocaleString();
+    async function getGoalsSumFromAPI() {
+        try {
+            const arr = await getGoals();
+            return Array.isArray(arr) ? arr.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0) : 0;
+        } catch { return 0; }
+    }
+    async function updateDashboardTotals() {
+        const [income, assets, expenses, goals] = await Promise.all([
+            getSumFromAPI(getIncomes),
+            getSumFromAPI(getAssets),
+            getSumFromAPI(getExpenses),
+            getGoalsSumFromAPI()
+        ]);
+        document.getElementById('total-income').textContent = "₹" + income.toLocaleString();
+        document.getElementById('total-assets').textContent = "₹" + assets.toLocaleString();
+        document.getElementById('total-expenses').textContent = "₹" + expenses.toLocaleString();
+        document.getElementById('total-goals').textContent = "₹" + goals.toLocaleString();
     }
     updateDashboardTotals();
     window.addEventListener('storage', updateDashboardTotals);
+
+    // --- Financial Report Buttons Logic ---
+    function showReportModal(report) {
+        // Simple modal for displaying the report (render markdown)
+        let modal = document.getElementById('financial-report-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'financial-report-modal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.6)';
+            modal.style.zIndex = '9999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.innerHTML = `
+                <div style="background:#fff;max-width:700px;width:90vw;max-height:80vh;overflow:auto;padding:32px;border-radius:12px;position:relative;">
+                    <button id="close-report-modal" style="position:absolute;top:12px;right:12px;font-size:1.5em;background:none;border:none;cursor:pointer;">&times;</button>
+                    <div id="financial-report-content" style="white-space:normal;"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('close-report-modal').onclick = () => { modal.remove(); };
+        }
+        // Render markdown to HTML (using marked.js if available, else fallback to pre)
+        let html = "";
+        if (window.marked) {
+            html = window.marked.parse(report);
+        } else {
+            html = `<pre style="white-space:pre-wrap;">${report}</pre>`;
+        }
+        document.getElementById('financial-report-content').innerHTML = html;
+        modal.style.display = 'flex';
+    }
+
+    document.getElementById('view-financial-report-btn').onclick = async function() {
+        const email = await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email"));
+        if (!email) return;
+        const res = await viewFinancialPlan(email);
+        if (res && res.financial_plan) {
+            showReportModal(res.financial_plan);
+        } else {
+            showReportModal("No financial report found. Please generate a report first.");
+        }
+    };
+
+    document.getElementById('generate-financial-report-btn').onclick = async function() {
+        const email = await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email"));
+        if (!email) return;
+        // Show spinner
+        const spinner = document.getElementById('ai-spinner-modal');
+        spinner.style.display = 'flex';
+        try {
+            const res = await generateFinancialPlan(email);
+            spinner.style.display = 'none';
+            if (res && res.financial_plan) {
+                showReportModal(res.financial_plan);
+            } else {
+                showReportModal("Failed to generate financial report.");
+            }
+        } catch (e) {
+            spinner.style.display = 'none';
+            showReportModal("Failed to generate financial report.");
+        }
+    };
+
+    // Optionally load marked.js for markdown rendering
+    if (!window.marked) {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+        script.onload = () => {};
+        document.head.appendChild(script);
+    }
     </script>
 </body>
 </html>

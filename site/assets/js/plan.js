@@ -7,49 +7,45 @@ function updateUI() {
     document.getElementById('user-email').textContent = userEmail ? userEmail : '';
 }
 
-/*
-document.getElementById('login-btn').onclick = function() {
-    signInWithGoogle();
-};
-document.getElementById('logout-btn').onclick = async function() {
-    window.location.href = '/logout';
-};
-*/
+// Remove any client-side Google sign-in logic and use server-side SSO endpoints
 
+// Replace signInWithGoogle with a redirect to the backend SSO endpoint
 function signInWithGoogle() {
-    const YOUR_CLIENT_ID = '488678637347-rr3big7ftd4c1ufnmakbc7tr7ou7rdre.apps.googleusercontent.com';
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const port = window.location.port || "";
-
-    const redirect_uri = `${protocol}//${hostname}${port ? `:${port}` : ''}/google/callback`;
-    const YOUR_REDIRECT_URI = redirect_uri;
-
-    var clientId = YOUR_CLIENT_ID;
-    var redirectUri = YOUR_REDIRECT_URI;
-    console.log("Redirecting to:", redirectUri);
-
-    // Create Google OAuth URL
-    var authUrl = 'https://accounts.google.com/o/oauth2/auth?' +
-        'response_type=code&' +
-        'client_id=' + clientId + '&' +
-        'redirect_uri=' + encodeURIComponent(redirectUri) + '&' +
-        'scope=email%20profile';
-
-    // Redirect in the same window
-    window.location.href = authUrl;
+    window.location.href = "/google/login";
 }
 
-async function checkAuth() {
+// Update login/logout button handlers to use server-side SSO
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) {
+    loginBtn.onclick = function() {
+        signInWithGoogle();
+    };
+}
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+    logoutBtn.onclick = function() {
+        window.location.href = '/logout';
+    };
+}
+
+// Update user email display after SSO
+async function updateUserEmailUI() {
     try {
         const response = await fetch('/session');
-        if (!response.ok) return false;
-        const data = await response.json();
-        return !!data.authenticated;
+        if (response.ok) {
+            const data = await response.json();
+            userEmail = data.user ? data.user.email : null;
+        } else {
+            userEmail = null;
+        }
     } catch (e) {
-        return false;
+        userEmail = null;
     }
+    updateUI();
 }
+
+// Call on page load
+updateUserEmailUI();
 
 // Utility to get user email (returns promise)
 async function getUserEmail() {

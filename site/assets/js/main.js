@@ -1,13 +1,3 @@
-// Sidebar navigation links
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-        alert(`Sidebar: ${this.textContent.trim()} clicked`);
-    });
-});
-
 // Profile section
 const profileSection = document.querySelector('.profile-section');
 if (profileSection) {
@@ -24,19 +14,23 @@ if (userAvatar) {
     });
 }
 
-// AI Assistant section
-const aiSection = document.querySelector('.ai-section');
-if (aiSection) {
-    aiSection.addEventListener('click', () => {
-        alert('AI Assistant section clicked!');
-    });
-}
-
 // Stat cards
 document.querySelectorAll('.stat-card').forEach(card => {
     card.addEventListener('click', function () {
         const title = this.querySelector('.stat-title')?.textContent || 'Stat Card';
-        alert(`${title} card clicked!`);
+        // Route to relevant page based on card title
+        if (title.includes("Income")) {
+            window.location.href = "/site/income.html";
+        } else if (title.includes("Assets")) {
+            window.location.href = "/site/assets.html";
+        } else if (title.includes("Expenses")) {
+            window.location.href = "/site/expenses.html";
+        } else if (title.includes("Goals")) {
+            window.location.href = "/site/goals.html";
+        } else {
+            // fallback: stay on dashboard
+            window.location.href = "/site/index.html";
+        }
     });
 });
 
@@ -44,7 +38,7 @@ document.querySelectorAll('.stat-card').forEach(card => {
 const activitySection = document.querySelector('.activity-section');
 if (activitySection) {
     activitySection.addEventListener('click', () => {
-        alert('Activity section clicked!');
+        window.location.href = "/site/expenses.html";
     });
 }
 
@@ -52,6 +46,6 @@ if (activitySection) {
 const latestBudgets = document.querySelector('.latest-budgets');
 if (latestBudgets) {
     latestBudgets.addEventListener('click', () => {
-        alert('Latest Budgets section clicked!');
+        window.location.href = "/site/expenses.html";
     });
 }

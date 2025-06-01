@@ -22,13 +22,15 @@ def create_chat_completion(prompt, model="gpt-4o"):
     )
     return response.choices[0].message.content
 
-def gemini_chat_completion(prompt, model="gemini-1.5-flash"):
+def gemini_chat_completion(prompt, model="gemini-1.5-flash", format="json"):
     key = os.getenv("API_KEY")
 
     if not key:
         raise ValueError("API_KEY environment variable is not set. Please set it using -e or export it in your environment.")
 
-    json_prompt = f"{prompt}\n\nPlease respond in proper JSON format only."
+    
+    modified_prompt = f"{prompt}\n\nPlease respond in proper {format.upper()} format only."
+
     response = ""
     try:
         genai.configure(api_key=key)
@@ -37,7 +39,7 @@ def gemini_chat_completion(prompt, model="gemini-1.5-flash"):
         gemini_model = genai.GenerativeModel(model_name=model)
 
         # Use the model to generate content
-        response = gemini_model.generate_content(json_prompt)
+        response = gemini_model.generate_content(modified_prompt)
     except (InvalidArgument, ResourceExhausted, DeadlineExceeded, PermissionDenied) as e:
         print(f"Error fetching response: {e}")
     except Exception as e:

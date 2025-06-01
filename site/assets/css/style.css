@@ -168,8 +168,7 @@ body {
 .ai-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 10px;
 }
 
 .ai-icon {
@@ -181,7 +180,7 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 20px;
+    font-size: 2em;
 }
 
 .ai-title {
@@ -317,4 +316,95 @@ body {
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Forms */
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+.form-row label {
+    flex: 1 0 120px;
+    font-weight: 500;
+}
+.form-row input {
+    flex: 2 0 200px;
+    padding: 10px;
+    font-size: 1.1em;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+#income-form, #asset-form, #expense-form, #goal-form {
+    max-width: 500px;
+    margin: 0 auto 24px auto;
+    background: #f9f9f9;
+    padding: 24px 24px 12px 24px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0001;
+}
+.btn-primary,
+#income-save-btn, #income-cancel-btn,
+#asset-save-btn, #asset-cancel-btn,
+#expense-save-btn, #expense-cancel-btn,
+#goal-save-btn, #goal-cancel-btn,
+.edit-btn, .delete-btn {
+    padding: 10px 24px;
+    font-size: 1.1em;
+    border-radius: 6px;
+    border: none;
+    margin-right: 10px;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-block;
+}
+#income-cancel-btn, #asset-cancel-btn, #expense-cancel-btn, #goal-cancel-btn,
+.delete-btn {
+    background: #dc3545;
+    color: #fff;
+}
+.edit-btn {
+    background: #28a745;
+    color: #fff;
+}
+.edit-btn:hover {
+    background: #218838;
+}
+.delete-btn:hover,
+#income-cancel-btn:hover, #asset-cancel-btn:hover, #expense-cancel-btn:hover, #goal-cancel-btn:hover {
+    background: #c82333;
+}
+#income-save-btn:hover, #asset-save-btn:hover, #expense-save-btn:hover, #goal-save-btn:hover, .btn-primary:hover {
+    background: #0056b3;
+}
+#income-list table, #asset-list table, #expense-list table, #goal-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+#income-list th, #income-list td,
+#asset-list th, #asset-list td,
+#expense-list th, #expense-list td,
+#goal-list th, #goal-list td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+}
+#income-list th, #asset-list th, #expense-list th, #goal-list th {
+    background: #f2f2f2;
+}
+.ai-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ai-icon {
+    font-size: 2em;
+}
+@media (max-width: 600px) {
+    #income-form, #asset-form, #expense-form, #goal-form { padding: 12px; }
+    .form-row { flex-direction: column; align-items: stretch; }
 }

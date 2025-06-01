@@ -27,4 +27,6 @@ if __name__ == "__main__":
             port = arg_port,
             workers=2,
             reload=True,
-            log_config=log_config)
+            log_config=log_config,
+            ssl_keyfile="/home/ssl/key.pem",
+            ssl_certfile="/home/ssl/cert.pem")

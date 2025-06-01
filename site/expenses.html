@@ -8,7 +8,6 @@
 <body>
     <div class="container">
         <div id="sidebar"></div>
-        <!-- Main Content -->
         <main class="main-content">
             <header class="header">
                 <h1 class="greeting">Expenses <span class="wave-emoji">📋</span></h1>
@@ -16,48 +15,120 @@
             </header>
             <section class="ai-section">
                 <div class="ai-header">
-                    <div class="ai-icon">💸</div>
-                    <h2 class="ai-title">Add Expense</h2>
+                    <div class="ai-icon">📋</div>
+                    <h2 class="ai-title">Add/Edit Expense</h2>
                 </div>
-                <form id="expenses-form">
-                    <div style="margin-bottom:10px;">
-                        <label>Expense Name: <input type="text" name="name" required></label>
+                <form id="expense-form">
+                    <input type="hidden" id="expense-editing" value="">
+                    <div class="form-row">
+                        <label for="expense-name">Expense Name:</label>
+                        <input type="text" id="expense-name" required autocomplete="off">
                     </div>
-                    <div style="margin-bottom:10px;">
-                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    <div class="form-row">
+                        <label for="expense-amount">Amount (INR):</label>
+                        <input type="number" id="expense-amount" required min="0" step="0.01" placeholder="₹">
                     </div>
-                    <button type="submit">Add Expense</button>
+                    <div class="form-row" style="justify-content: flex-end;">
+                        <button type="submit" id="expense-save-btn">Add Expense</button>
+                        <button type="button" id="expense-cancel-btn" style="display:none;">Cancel</button>
+                    </div>
                 </form>
-                <div id="expenses-list" style="margin-top:20px;">
-                    <!-- List of expenses will appear here -->
+                <div id="expense-list" style="margin-top:20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount (INR)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expense-table-body"></tbody>
+                    </table>
                 </div>
             </section>
         </main>
     </div>
     <script src="/site/assets/js/sidebar.js"></script>
-    <script>
-    // Simple JS to add/display expenses (local only)
-    const form = document.getElementById('expenses-form');
-    const list = document.getElementById('expenses-list');
-    let expenses = [];
-    form.onsubmit = function(e) {
-        e.preventDefault();
-        const name = form.name.value.trim();
-        const amount = parseFloat(form.amount.value);
-        if (name && !isNaN(amount)) {
-            expenses.push({name, amount});
-            render();
-            form.reset();
-        }
-    };
-    function render() {
-        if (expenses.length === 0) {
-            list.innerHTML = "<em>No expenses added yet.</em>";
-            return;
-        }
-        list.innerHTML = "<ul>" + expenses.map(i => `<li><b>${i.name}</b>: $${i.amount.toLocaleString()}</li>`).join("") + "</ul>";
+    <script type="module">
+    import { getExpenses, saveExpense, deleteExpense, updateExpense } from '/site/assets/js/backend.js';
+
+    const emailPromise = (async () => await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email")))();
+
+    async function refreshExpenseList() {
+        const email = await emailPromise;
+        const expenses = await getExpenses(email);
+        const table = document.getElementById("expense-table-body");
+        table.innerHTML = "";
+        expenses.forEach(expense => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${expense.name}</td>
+                <td>${expense.amount}</td>
+                <td>
+                    <button type="button" class="edit-btn" data-name="${expense.name}" data-amount="${expense.amount}">✏️ Edit</button>
+                    <button type="button" class="delete-btn" data-name="${expense.name}">🗑️ Delete</button>
+                </td>
+            `;
+            table.appendChild(row);
+        });
+
+        // Attach event listeners for edit/delete
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => editExpense(btn.dataset.name, btn.dataset.amount);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => removeExpense(btn.dataset.name);
+        });
     }
-    render();
+
+    window.addExpense = async function() {
+        const email = await emailPromise;
+        const name = document.getElementById("expense-name").value;
+        const amount = parseFloat(document.getElementById("expense-amount").value);
+        await saveExpense({ email, name, amount });
+        document.getElementById("expense-form").reset();
+        await refreshExpenseList();
+    };
+
+    window.removeExpense = async function(name) {
+        const email = await emailPromise;
+        await deleteExpense(email, name);
+        await refreshExpenseList();
+    };
+
+    window.editExpense = function(name, amount) {
+        document.getElementById("expense-name").value = name;
+        document.getElementById("expense-amount").value = amount;
+        document.getElementById("expense-editing").value = name;
+        document.getElementById("expense-save-btn").textContent = "Update Expense";
+        document.getElementById("expense-cancel-btn").style.display = "";
+    };
+
+    window.cancelEditExpense = function() {
+        document.getElementById("expense-form").reset();
+        document.getElementById("expense-editing").value = "";
+        document.getElementById("expense-save-btn").textContent = "Add Expense";
+        document.getElementById("expense-cancel-btn").style.display = "none";
+    };
+
+    document.getElementById("expense-form").onsubmit = async function(e) {
+        e.preventDefault();
+        const email = await emailPromise;
+        const editing = document.getElementById("expense-editing").value;
+        const name = document.getElementById("expense-name").value;
+        const amount = parseFloat(document.getElementById("expense-amount").value);
+        if (editing) {
+            await updateExpense(email, editing, name, amount);
+            window.cancelEditExpense();
+        } else {
+            await saveExpense({ email, name, amount });
+        }
+        await refreshExpenseList();
+    };
+
+    document.getElementById("expense-cancel-btn").onclick = window.cancelEditExpense;
+
+    window.onload = refreshExpenseList;
     </script>
 </body>
 </html>

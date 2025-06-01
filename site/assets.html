@@ -17,47 +17,119 @@
             <section class="ai-section">
                 <div class="ai-header">
                     <div class="ai-icon">🏦</div>
-                    <h2 class="ai-title">Add Asset</h2>
+                    <h2 class="ai-title">Add/Edit Asset</h2>
                 </div>
-                <form id="assets-form">
-                    <div style="margin-bottom:10px;">
-                        <label>Asset Name: <input type="text" name="name" required></label>
+                <form id="asset-form">
+                    <input type="hidden" id="asset-editing" value="">
+                    <div class="form-row">
+                        <label for="asset-name">Asset Name:</label>
+                        <input type="text" id="asset-name" required autocomplete="off">
                     </div>
-                    <div style="margin-bottom:10px;">
-                        <label>Amount: <input type="number" name="amount" required min="0"></label>
+                    <div class="form-row">
+                        <label for="asset-amount">Amount (INR):</label>
+                        <input type="number" id="asset-amount" required min="0" step="0.01" placeholder="₹">
                     </div>
-                    <button type="submit">Add Asset</button>
+                    <div class="form-row" style="justify-content: flex-end;">
+                        <button type="submit" id="asset-save-btn">Add Asset</button>
+                        <button type="button" id="asset-cancel-btn" style="display:none;">Cancel</button>
+                    </div>
                 </form>
-                <div id="assets-list" style="margin-top:20px;">
-                    <!-- List of assets will appear here -->
+                <div id="asset-list" style="margin-top:20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount (INR)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asset-table-body"></tbody>
+                    </table>
                 </div>
             </section>
         </main>
     </div>
     <script src="/site/assets/js/sidebar.js"></script>
-    <script>
-    // Simple JS to add/display assets (local only)
-    const form = document.getElementById('assets-form');
-    const list = document.getElementById('assets-list');
-    let assets = [];
-    form.onsubmit = function(e) {
-        e.preventDefault();
-        const name = form.name.value.trim();
-        const amount = parseFloat(form.amount.value);
-        if (name && !isNaN(amount)) {
-            assets.push({name, amount});
-            render();
-            form.reset();
-        }
-    };
-    function render() {
-        if (assets.length === 0) {
-            list.innerHTML = "<em>No assets added yet.</em>";
-            return;
-        }
-        list.innerHTML = "<ul>" + assets.map(i => `<li><b>${i.name}</b>: $${i.amount.toLocaleString()}</li>`).join("") + "</ul>";
+    <script type="module">
+    import { getAssets, saveAsset, deleteAsset, updateAsset } from '/site/assets/js/backend.js';
+
+    const emailPromise = (async () => await (window.getUserEmailOrLogin ? window.getUserEmailOrLogin() : localStorage.getItem("user_email")))();
+
+    async function refreshAssetList() {
+        const email = await emailPromise;
+        const assets = await getAssets(email);
+        const table = document.getElementById("asset-table-body");
+        table.innerHTML = "";
+        assets.forEach(asset => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${asset.name}</td>
+                <td>${asset.amount}</td>
+                <td>
+                    <button type="button" class="edit-btn" data-name="${asset.name}" data-amount="${asset.amount}">✏️ Edit</button>
+                    <button type="button" class="delete-btn" data-name="${asset.name}">🗑️ Delete</button>
+                </td>
+            `;
+            table.appendChild(row);
+        });
+
+        // Attach event listeners for edit/delete
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => editAsset(btn.dataset.name, btn.dataset.amount);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => removeAsset(btn.dataset.name);
+        });
     }
-    render();
+
+    window.addAsset = async function() {
+        const email = await emailPromise;
+        const name = document.getElementById("asset-name").value;
+        const amount = parseFloat(document.getElementById("asset-amount").value);
+        await saveAsset({ email, name, amount });
+        document.getElementById("asset-form").reset();
+        await refreshAssetList();
+    };
+
+    window.removeAsset = async function(name) {
+        const email = await emailPromise;
+        await deleteAsset(email, name);
+        await refreshAssetList();
+    };
+
+    window.editAsset = function(name, amount) {
+        document.getElementById("asset-name").value = name;
+        document.getElementById("asset-amount").value = amount;
+        document.getElementById("asset-editing").value = name;
+        document.getElementById("asset-save-btn").textContent = "Update Asset";
+        document.getElementById("asset-cancel-btn").style.display = "";
+    };
+
+    window.cancelEditAsset = function() {
+        document.getElementById("asset-form").reset();
+        document.getElementById("asset-editing").value = "";
+        document.getElementById("asset-save-btn").textContent = "Add Asset";
+        document.getElementById("asset-cancel-btn").style.display = "none";
+    };
+
+    document.getElementById("asset-form").onsubmit = async function(e) {
+        e.preventDefault();
+        const email = await emailPromise;
+        const editing = document.getElementById("asset-editing").value;
+        const name = document.getElementById("asset-name").value;
+        const amount = parseFloat(document.getElementById("asset-amount").value);
+        if (editing) {
+            await updateAsset(email, editing, name, amount);
+            window.cancelEditAsset();
+        } else {
+            await saveAsset({ email, name, amount });
+        }
+        await refreshAssetList();
+    };
+
+    document.getElementById("asset-cancel-btn").onclick = window.cancelEditAsset;
+
+    window.onload = refreshAssetList;
     </script>
 </body>
 </html>

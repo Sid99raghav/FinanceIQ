@@ -10,7 +10,7 @@ document.getElementById('sidebar').innerHTML = `
             <li class="nav-item"><a href="income.html" class="nav-link"><div class="nav-icon">💰</div>Incomes</a></li>
             <li class="nav-item"><a href="assets.html" class="nav-link"><div class="nav-icon">🏦</div>Assets</a></li>
             <li class="nav-item"><a href="expenses.html" class="nav-link"><div class="nav-icon">📋</div>Expenses</a></li>
-            <li class="nav-item"><a href="#" class="nav-link"><div class="nav-icon">⬆️</div>Upgrade</a></li>
+            <li class="nav-item"><a href="goals.html" class="nav-link"><div class="nav-icon">🎯</div>Goals</a></li>
         </ul>
     </nav>
     <div class="profile-section">
