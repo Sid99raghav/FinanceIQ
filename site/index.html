@@ -22,8 +22,8 @@
 
             <!-- Header -->
             <header class="header">
-                <h1 class="greeting">
-                    Hi, Siddhant Raghav
+                <h1 class="greeting" id="dashboard-greeting">
+                    Hi, <span id="dashboard-user-name">User</span>
                     <span class="wave-emoji">👋</span>
                 </h1>
                 <p class="subheading">Here's what happening with your money, Lets Manage your expense</p>
@@ -215,6 +215,22 @@
         script.onload = () => {};
         document.head.appendChild(script);
     }
+
+    // Set greeting name from SSO/session
+    async function setGreetingName() {
+        try {
+            const res = await fetch('/session', { credentials: "include" });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.authenticated && data.user && data.user.display_name) {
+                    document.getElementById('dashboard-user-name').textContent = data.user.display_name;
+                } else if (data.authenticated && data.user && data.user.email) {
+                    document.getElementById('dashboard-user-name').textContent = data.user.email.split('@')[0];
+                }
+            }
+        } catch {}
+    }
+    setGreetingName();
     </script>
 </body>
 </html>
