@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceIQ Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo">🔍</div>
+                <span class="logo-text">FinanceIQ</span>
+            </div>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <div class="nav-icon">📊</div>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <div class="nav-icon">💰</div>
+                            Incomes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <div class="nav-icon">🎯</div>
+                            Budgets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <div class="nav-icon">📋</div>
+                            Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <div class="nav-icon">⬆️</div>
+                            Upgrade
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="profile-section">
+                <div class="profile-avatar">👤</div>
+                <span class="profile-text">Profile</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- User Avatar -->
+            <div class="user-avatar" id="user-avatar">👤</div>
+            <!-- SSO Buttons -->
+            <div style="margin-bottom:20px;">
+                <button id="login-btn" style="display:inline-block;">Login with Google</button>
+                <button id="logout-btn" style="display:none;">Logout</button>
+                <span id="user-email" style="margin-left:10px;"></span>
+            </div>
+            <!-- Financial Plan Form -->
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🤖</div>
+                    <h2 class="ai-title">Get Your Financial Plan</h2>
+                </div>
+                <form id="plan-form">
+                    <div style="margin-bottom:10px;">
+                        <label>Assets: <input type="text" name="assets" required placeholder="e.g. 10000, 5000 (comma separated)"></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Expenses: <input type="text" name="expenses" required placeholder="e.g. 2000, 1500 (comma separated)"></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Income Sources: <input type="text" name="income_sources" required placeholder="e.g. Salary, Freelance"></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Goals: <input type="text" name="goals" required placeholder="e.g. Buy a house"></label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label>Goal Time Period (years): <input type="number" name="goal_period" required min="1"></label>
+                    </div>
+                    <button type="submit">Generate Plan</button>
+                </form>
+                <div id="plan-result" style="margin-top:20px;"></div>
+            </section>
+
+            <!-- Header -->
+            <header class="header">
+                <h1 class="greeting">
+                    Hi, Siddhant Raghav
+                    <span class="wave-emoji">👋</span>
+                </h1>
+                <p class="subheading">Here's what happening with your money, Lets Manage your expense</p>
+            </header>
+
+            <!-- AI Assistant -->
+            <section class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">🤖</div>
+                    <h2 class="ai-title">Finan Smart AI</h2>
+                </div>
+                <p class="ai-message">Sorry, I couldn't fetch the financial advice at this moment. Please try again later.</p>
+            </section>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Budget</span>
+                        <div class="stat-icon">🔄</div>
+                    </div>
+                    <div class="stat-value">$10K</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Spend</span>
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value">$0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">No. Of Budget</span>
+                        <div class="stat-icon">📁</div>
+                    </div>
+                    <div class="stat-value">1</div>
+                </div>
+            </section>
+
+            <!-- Additional Stats -->
+            <section class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 40px;">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Sum of Income Streams</span>
+                        <div class="stat-icon">💲</div>
+                    </div>
+                    <div class="stat-value">$4.3M</div>
+                </div>
+            </section>
+
+            <!-- Bottom Section -->
+            <section class="bottom-section">
+                <div class="activity-section">
+                    <h3 class="activity-title">Activity</h3>
+                    <div class="chart-container">
+                        <div class="y-axis">
+                            <span>10000</span>
+                            <span>7500</span>
+                            <span>5000</span>
+                            <span>2500</span>
+                            <span>0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="latest-budgets">
+                    <h3 class="latest-title">Latest Budgets</h3>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/main.js"></script>
+    <script src="js/plan.js"></script>
+</body>
+</html>

@@ -23,9 +23,18 @@ if (loginBtn) {
 }
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
+    // Remove logout button click handler
     logoutBtn.onclick = function() {
         window.location.href = '/logout';
-    };
+    }
+}
+
+// Move logout functionality to user avatar
+const userAvatar = document.querySelector('.user-avatar');
+if (userAvatar) {
+    userAvatar.addEventListener('click', () => {
+        window.location.href = '/logout';
+    });
 }
 
 // Update user email display after SSO

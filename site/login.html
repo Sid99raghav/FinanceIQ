@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - FinanceIQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/site/assets/css/style.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8f9fb; }
+        .login-container {
+            background: #fff;
+            padding: 40px 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px #0001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 320px;
+        }
+        .login-logo {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+        .login-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #2563eb;
+        }
+        .login-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .login-btn:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">💹</div>
+        <div class="login-title">Sign in to FinanceIQ</div>
+        <button class="login-btn" onclick="window.location.href='/google/login'">
+            Login with Google
+        </button>
+    </div>
+    <script>
+        // Optional: If already authenticated, redirect to dashboard
+        fetch('/session', { credentials: "include" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.authenticated) {
+                    window.location.href = "/site/index.html";
+                }
+            });
+    </script>
+</body>
+</html>

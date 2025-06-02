@@ -4,7 +4,7 @@ command: "/home/server.py 443"
 ports:
   - "443:443"
 volumes:
-  - "C:\\Users\\psing\\workera\\FinanceIQ:/home"
+  - " C:\\Users\\sidsi\\OneDrive\\Desktop\\FinanceIQ>:/home"
 environment:
   API_KEY: "AIzaSyDDhAAyX5rnZbqEZeA10PF0bmZY9_dSwas"
   OPENAI_API_KEY: "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"

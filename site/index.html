@@ -11,8 +11,24 @@
         <div id="sidebar"></div>
         <!-- Main Content -->
         <main class="main-content">
-            <!-- User Avatar -->
-            <div class="user-avatar" id="user-avatar">👤</div>
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="user-avatar" id="user-avatar">👤</div>
+                <div class="avatar-info">
+                    <span class="user-email" id="user-email"></span>
+                    <button id="logout-btn" class="avatar-logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <!-- Avatar Dialog (newly added) -->
+            <div id="avatar-dialog" class="avatar-dialog" style="display:none;">
+                <div class="avatar-dialog-content">
+                    <div class="avatar-dialog-avatar" id="avatar-dialog-avatar">👤</div>
+                    <div class="avatar-dialog-email" id="avatar-dialog-email"></div>
+                    <button id="avatar-logout-btn" class="avatar-logout-btn">Logout</button>
+                </div>
+            </div>
+
             <!-- SSO Buttons -->
             <div style="margin-bottom:20px;">
                 <button id="login-btn" style="display:inline-block;">Login with Google</button>
@@ -34,28 +50,28 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Income</span>
-                        <div class="stat-icon">💰</div>
+                        <div class="stat-icon">🪙</div>
                     </div>
                     <div class="stat-value" id="total-income">₹0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Assets</span>
-                        <div class="stat-icon">🏦</div>
+                        <div class="stat-icon">💹</div>
                     </div>
                     <div class="stat-value" id="total-assets">₹0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Expenses</span>
-                        <div class="stat-icon">📋</div>
+                        <div class="stat-icon">💸</div>
                     </div>
                     <div class="stat-value" id="total-expenses">₹0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-header">
                         <span class="stat-title">Total Goals</span>
-                        <div class="stat-icon">🎯</div>
+                        <div class="stat-icon">📈</div>
                     </div>
                     <div class="stat-value" id="total-goals">₹0</div>
                 </div>
@@ -65,7 +81,7 @@
             <section class="ai-section">
                 <div class="ai-header">
                     <div class="ai-icon">🤖</div>
-                    <h2 class="ai-title">Finan Smart AI</h2>
+                    <h2 class="ai-title">FinanceIQ AI</h2>
                 </div>
                 <div style="margin-top:24px; display:flex; gap:16px;">
                     <button id="view-financial-report-btn" class="btn-primary">View Financial Report</button>
@@ -78,12 +94,6 @@
                         <div style="font-size:1.2em;font-weight:500;">Finance IQ AI is working on your financial plan...</div>
                     </div>
                 </div>
-                <style>
-                @keyframes spin {
-                    0% { transform: rotate(0deg);}
-                    100% { transform: rotate(360deg);}
-                }
-                </style>
             </section>
 
             <!-- Bottom Section -->
@@ -108,7 +118,7 @@
         </main>
     </div>
     <script src="/site/assets/js/sidebar.js"></script>
-    <script src="/site/assets/js/main.js"></script>
+    <script type="module" src="/site/assets/js/main.js"></script>
     <script src="/site/assets/js/plan.js"></script>
     <script type="module">
     import { getIncomes, getAssets, getExpenses, getGoals, viewFinancialPlan, generateFinancialPlan } from '/site/assets/js/backend.js';
