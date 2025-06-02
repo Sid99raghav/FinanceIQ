@@ -1,4 +1,11 @@
 # FinanceIQ
+<div align="center">
+  <br />
+    <a>
+      <img src="https://i.postimg.cc/tJsYLQcP/test1.jpg" alt="Project Banner">
+    </a>
+  
+  <br />
 
 FinanceIQ is a modern personal finance dashboard that helps you track incomes, expenses, and budgets with ease. Visualize your financial data and make smarter decisions with intuitive charts and insights.
 
